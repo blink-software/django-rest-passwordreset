@@ -3,7 +3,6 @@ import importlib
 from django.conf import settings
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from django_rest_passwordreset.tokens import get_token_generator
@@ -26,7 +25,6 @@ __all__ = [
 ]
 
 
-@python_2_unicode_compatible
 class ResetPasswordToken(models.Model):
     class Meta:
         verbose_name = _("Password Reset Token")
