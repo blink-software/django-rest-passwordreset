@@ -96,6 +96,5 @@ class Migration(migrations.Migration):
     dependencies = [
         ("django_rest_passwordreset", "0001_initial",),
     ]
-
-    print(django.VERSION)
+    
     operations = get_migrations_based_on_django_version()
