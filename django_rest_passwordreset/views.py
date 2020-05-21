@@ -56,24 +56,23 @@ class ResetPasswordConfirm(GenericAPIView):
             return Response({'status': 'expired'}, status=status.HTTP_404_NOT_FOUND)
 
         # change users password
-        if reset_password_token.user.has_usable_password():
-            pre_password_reset.send(sender=self.__class__, user=reset_password_token.user)
-            try:
-                # validate the password against existing validators
-                validate_password(
-                    password,
-                    user=reset_password_token.user,
-                    password_validators=get_password_validators(settings.AUTH_PASSWORD_VALIDATORS)
-                )
-            except ValidationError as e:
-                # raise a validation error for the serializer
-                raise exceptions.ValidationError({
-                    'password': e.messages
-                })
+        pre_password_reset.send(sender=self.__class__, user=reset_password_token.user)
+        try:
+            # validate the password against existing validators
+            validate_password(
+                password,
+                user=reset_password_token.user,
+                password_validators=get_password_validators(settings.AUTH_PASSWORD_VALIDATORS)
+            )
+        except ValidationError as e:
+            # raise a validation error for the serializer
+            raise exceptions.ValidationError({
+                'password': e.messages
+            })
 
-            reset_password_token.user.set_password(password)
-            reset_password_token.user.save()
-            post_password_reset.send(sender=self.__class__, user=reset_password_token.user)
+        reset_password_token.user.set_password(password)
+        reset_password_token.user.save()
+        post_password_reset.send(sender=self.__class__, user=reset_password_token.user)
 
         # Delete all password reset tokens for this user
         ResetPasswordToken.objects.filter(user=reset_password_token.user).delete()
@@ -119,7 +118,7 @@ class ResetPasswordRequestToken(GenericAPIView):
         # also check whether the password can be changed (is useable), as there could be users that are not allowed
         # to change their password (e.g., LDAP user)
         for user in users:
-            if user.is_active and user.has_usable_password():
+            if user.is_active:
                 active_user_found = True
 
         # No active user found, raise a validation error
@@ -132,7 +131,7 @@ class ResetPasswordRequestToken(GenericAPIView):
         # last but not least: iterate over all users that are active and can change their password
         # and create a Reset Password Token and send a signal with the created token
         for user in users:
-            if user.is_active and user.has_usable_password():
+            if user.is_active:
                 # define the token as none for now
                 token = None
 
